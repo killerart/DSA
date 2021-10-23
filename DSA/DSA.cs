@@ -10,10 +10,9 @@ namespace DSA {
         private readonly SHA256                   _sha256 = SHA256.Create();
         private readonly RNGCryptoServiceProvider _rng    = new RNGCryptoServiceProvider();
 
-        private const int L = 2048;
-        private const int N = 256;
-
-        private const int _blockByteSize = N / 8;
+        private const int L  = 2048;
+        private const int N  = 256;
+        private const int NB = N / 8;
 
         private BigInteger Q;
         private BigInteger P;
@@ -50,11 +49,12 @@ namespace DSA {
             return Sign(messageBytes);
         }
 
-        public byte[] Sign(byte[] M) {
-            var signature = new byte[_blockByteSize * 2];
+        public byte[] Sign(byte[] message) {
+            var signature = new byte[NB * 2];
 
             repeat:
             try {
+                var M = message;
                 var K = _rng.NextBigInteger(1, Q);
                 var R = G.ModPow(K, P) % Q;
                 if (R == BigInteger.Zero)
@@ -78,7 +78,8 @@ namespace DSA {
             return Verify(messageBytes, signature);
         }
 
-        public bool Verify(byte[] M, ReadOnlySpan<byte> signature) {
+        public bool Verify(byte[] message, ReadOnlySpan<byte> signature) {
+            var M = message;
             var R = GetR(signature);
             var S = GetS(signature);
 
@@ -102,22 +103,22 @@ namespace DSA {
         }
 
         private static BigInteger GetR(ReadOnlySpan<byte> signature) {
-            var R = signature[.._blockByteSize];
+            var R = signature[..NB];
             return new BigInteger(R, true);
         }
 
         private static void WriteR(BigInteger R, Span<byte> signature) {
-            var rBlock = signature[.._blockByteSize];
+            var rBlock = signature[..NB];
             R.TryWriteBytes(rBlock, out _, true);
         }
 
         private static BigInteger GetS(ReadOnlySpan<byte> signature) {
-            var S = signature[_blockByteSize..];
+            var S = signature[NB..];
             return new BigInteger(S, true);
         }
 
         private static void WriteS(BigInteger S, Span<byte> signature) {
-            var sBlock = signature[_blockByteSize..];
+            var sBlock = signature[NB..];
             S.TryWriteBytes(sBlock, out _, true);
         }
 
