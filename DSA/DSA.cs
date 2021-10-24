@@ -3,29 +3,34 @@ using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 
+// ReSharper disable ClassWithVirtualMembersNeverInherited.Global
 // ReSharper disable InconsistentNaming
 
 namespace DSA {
     public class DSA : IDisposable {
-        private readonly SHA256                _sha256 = SHA256.Create();
+        private const    int                   L       = 2048;
+        private const    int                   N       = 256;
+        private const    int                   NB      = N / 8;
         private readonly RandomNumberGenerator _rng    = RandomNumberGenerator.Create();
-
-        private const int L  = 2048;
-        private const int N  = 256;
-        private const int NB = N / 8;
+        private readonly SHA256                _sha256 = SHA256.Create();
+        private          BigInteger            G;
+        private          BigInteger            P;
 
         private BigInteger Q;
-        private BigInteger P;
-        private BigInteger G;
         private BigInteger X;
         private BigInteger Y;
 
-        private BigInteger H(byte[] input) {
-            return new BigInteger(_sha256.ComputeHash(input), true);
-        }
-
         public DSA() {
             GenerateKeys();
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private BigInteger H(byte[] input) {
+            return new BigInteger(_sha256.ComputeHash(input), true);
         }
 
         private void GenerateRandomPrimes() {
@@ -123,15 +128,10 @@ namespace DSA {
         }
 
         protected virtual void Dispose(bool disposing) {
-            if (disposing) {
-                _sha256.Dispose();
-                _rng.Dispose();
-            }
-        }
-
-        public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            if (!disposing)
+                return;
+            _sha256.Dispose();
+            _rng.Dispose();
         }
     }
 }
