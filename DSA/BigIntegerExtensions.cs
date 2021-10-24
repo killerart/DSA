@@ -30,7 +30,7 @@ namespace DSA {
     }
 
     public static class RandomBigInteger {
-        public static BigInteger NextBigInteger(this RNGCryptoServiceProvider r, int bitLength) {
+        public static BigInteger NextBigInteger(this RandomNumberGenerator r, int bitLength) {
             if (bitLength < 1)
                 return BigInteger.Zero;
 
@@ -46,7 +46,7 @@ namespace DSA {
             return new BigInteger(bs);
         }
 
-        public static BigInteger NextBigInteger(this RNGCryptoServiceProvider r, BigInteger start, BigInteger end) {
+        public static BigInteger NextBigInteger(this RandomNumberGenerator r, BigInteger start, BigInteger end) {
             if (start == end)
                 return start;
 

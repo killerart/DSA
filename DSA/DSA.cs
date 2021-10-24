@@ -7,8 +7,8 @@ using System.Text;
 
 namespace DSA {
     public class DSA : IDisposable {
-        private readonly SHA256                   _sha256 = SHA256.Create();
-        private readonly RNGCryptoServiceProvider _rng    = new RNGCryptoServiceProvider();
+        private readonly SHA256                _sha256 = SHA256.Create();
+        private readonly RandomNumberGenerator _rng    = RandomNumberGenerator.Create();
 
         private const int L  = 2048;
         private const int N  = 256;
@@ -122,9 +122,16 @@ namespace DSA {
             return new BigInteger(S, true);
         }
 
+        protected virtual void Dispose(bool disposing) {
+            if (disposing) {
+                _sha256.Dispose();
+                _rng.Dispose();
+            }
+        }
+
         public void Dispose() {
-            _rng.Dispose();
-            _sha256.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
