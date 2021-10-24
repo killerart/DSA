@@ -8,25 +8,22 @@ using System.Text;
 
 namespace DSA {
     public class DSA : IDisposable {
-        private const    int                   L       = 2048;
-        private const    int                   N       = 256;
-        private const    int                   NB      = N / 8;
         private readonly RandomNumberGenerator _rng    = RandomNumberGenerator.Create();
         private readonly SHA256                _sha256 = SHA256.Create();
-        private          BigInteger            G;
-        private          BigInteger            P;
 
+        private const int L  = 2048;
+        private const int N  = 256;
+        private const int NB = N / 8;
+
+        private BigInteger G;
+        private BigInteger P;
         private BigInteger Q;
+
         private BigInteger X;
         private BigInteger Y;
 
         public DSA() {
             GenerateKeys();
-        }
-
-        public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         private BigInteger H(byte[] input) {
@@ -132,6 +129,11 @@ namespace DSA {
                 return;
             _sha256.Dispose();
             _rng.Dispose();
+        }
+
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
