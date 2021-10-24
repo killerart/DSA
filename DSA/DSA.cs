@@ -102,24 +102,24 @@ namespace DSA {
             return true;
         }
 
-        private static BigInteger GetR(ReadOnlySpan<byte> signature) {
-            var R = signature[..NB];
-            return new BigInteger(R, true);
-        }
-
         private static void WriteR(BigInteger R, Span<byte> signature) {
             var rBlock = signature[..NB];
             R.TryWriteBytes(rBlock, out _, true);
         }
 
-        private static BigInteger GetS(ReadOnlySpan<byte> signature) {
-            var S = signature[NB..];
-            return new BigInteger(S, true);
-        }
-
         private static void WriteS(BigInteger S, Span<byte> signature) {
             var sBlock = signature[NB..];
             S.TryWriteBytes(sBlock, out _, true);
+        }
+
+        private static BigInteger GetR(ReadOnlySpan<byte> signature) {
+            var R = signature[..NB];
+            return new BigInteger(R, true);
+        }
+
+        private static BigInteger GetS(ReadOnlySpan<byte> signature) {
+            var S = signature[NB..];
+            return new BigInteger(S, true);
         }
 
         public void Dispose() {
