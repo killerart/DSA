@@ -15,12 +15,12 @@ namespace DSA {
         private const int N  = 256;
         private const int NB = N / 8;
 
-        private BigInteger G;
-        private BigInteger P;
-        private BigInteger Q;
+        private BigInteger g;
+        private BigInteger p;
+        private BigInteger q;
 
-        private BigInteger X;
-        private BigInteger Y;
+        private BigInteger x;
+        private BigInteger y;
 
         public DSA() {
             GenerateKeys();
@@ -33,17 +33,17 @@ namespace DSA {
         private void GenerateRandomPrimes() {
             using var dsa        = System.Security.Cryptography.DSA.Create(L);
             var       parameters = dsa.ExportParameters(true);
-            P = new BigInteger(parameters.P, true, true);
-            Q = new BigInteger(parameters.Q, true, true);
+            p = new BigInteger(parameters.P, true, true);
+            q = new BigInteger(parameters.Q, true, true);
         }
 
         private void GenerateKeys() {
             GenerateRandomPrimes();
-            BigInteger H = 2;
-            G = H.ModPow((P - 1) / Q, P);
+            BigInteger h = 2;
+            g = h.ModPow((p - 1) / q, p);
 
-            X = _rng.NextBigInteger(1, Q);
-            Y = G.ModPow(X, P);
+            x = _rng.NextBigInteger(1, q);
+            y = g.ModPow(x, p);
         }
 
         public byte[] Sign(string message) {
@@ -56,18 +56,18 @@ namespace DSA {
 
             repeat:
             try {
-                var M = message;
-                var K = _rng.NextBigInteger(1, Q);
-                var R = G.ModPow(K, P) % Q;
-                if (R == BigInteger.Zero)
+                var m = message;
+                var k = _rng.NextBigInteger(1, q);
+                var r = g.ModPow(k, p) % q;
+                if (r == BigInteger.Zero)
                     goto repeat;
 
-                var S = K.ModInverse(Q) * (H(M) + X * R) % Q;
-                if (S == BigInteger.Zero)
+                var s = k.ModInverse(q) * (H(m) + x * r) % q;
+                if (s == BigInteger.Zero)
                     goto repeat;
 
-                WriteR(R, signature);
-                WriteS(S, signature);
+                WriteR(r, signature);
+                WriteS(s, signature);
             } catch (ArithmeticException) {
                 goto repeat;
             }
@@ -81,20 +81,20 @@ namespace DSA {
         }
 
         public bool Verify(byte[] message, ReadOnlySpan<byte> signature) {
-            var M = message;
-            var R = GetR(signature);
-            var S = GetS(signature);
+            var m = message;
+            var r = GetR(signature);
+            var s = GetS(signature);
 
-            if (R == BigInteger.Zero || R >= Q || S == BigInteger.Zero || S >= Q) {
+            if (r == BigInteger.Zero || s == BigInteger.Zero || r >= q || s >= q) {
                 return false;
             }
 
             try {
-                var W  = S.ModInverse(Q);
-                var U1 = H(M) * W % Q;
-                var U2 = R * W % Q;
-                var V  = G.ModPow(U1, P) * Y.ModPow(U2, P) % P % Q;
-                if (V != R) {
+                var w  = s.ModInverse(q);
+                var u1 = H(m) * w % q;
+                var u2 = r * w % q;
+                var v  = g.ModPow(u1, p) * y.ModPow(u2, p) % p % q;
+                if (v != r) {
                     return false;
                 }
             } catch (ArithmeticException) {
@@ -104,24 +104,24 @@ namespace DSA {
             return true;
         }
 
-        private static void WriteR(BigInteger R, Span<byte> signature) {
+        private static void WriteR(BigInteger r, Span<byte> signature) {
             var rBlock = signature[..NB];
-            R.TryWriteBytes(rBlock, out _, true);
+            r.TryWriteBytes(rBlock, out _, true);
         }
 
-        private static void WriteS(BigInteger S, Span<byte> signature) {
+        private static void WriteS(BigInteger s, Span<byte> signature) {
             var sBlock = signature[NB..];
-            S.TryWriteBytes(sBlock, out _, true);
+            s.TryWriteBytes(sBlock, out _, true);
         }
 
         private static BigInteger GetR(ReadOnlySpan<byte> signature) {
-            var R = signature[..NB];
-            return new BigInteger(R, true);
+            var r = signature[..NB];
+            return new BigInteger(r, true);
         }
 
         private static BigInteger GetS(ReadOnlySpan<byte> signature) {
-            var S = signature[NB..];
-            return new BigInteger(S, true);
+            var s = signature[NB..];
+            return new BigInteger(s, true);
         }
 
         protected virtual void Dispose(bool disposing) {
