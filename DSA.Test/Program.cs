@@ -3,7 +3,7 @@
 namespace DSA.Test {
     class Program {
         static void Main(string[] args) {
-            var dsa = new DSA();
+            using var dsa = new DSA();
 
             Console.Write("Input message: ");
             var message = Console.ReadLine();
